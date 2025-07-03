@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASDAQ Market Sentiment Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- TradingView Widget Scripts -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-chart-line"></i> <span id="marketTitle">NASDAQ</span> Market Sentiment</h1>
+            <p class="subtitle">Real-time market analysis and trading recommendations</p>
+            
+            <!-- Symbol Selector -->
+            <div class="symbol-selector">
+                <div class="selector-container">
+                    <label for="symbolSelect"><i class="fas fa-globe"></i> Select Market Symbol:</label>
+                    <select id="symbolSelect" onchange="changeSymbol()">
+                        <optgroup label="US Markets">
+                            <option value="NASDAQ:IXIC" data-name="NASDAQ Composite" data-currency="USD" data-exchange="NASDAQ" selected>NASDAQ Composite (^IXIC)</option>
+                            <option value="SP:SPX" data-name="S&P 500" data-currency="USD" data-exchange="SP">S&P 500 (^GSPC)</option>
+                            <option value="DJ:DJI" data-name="Dow Jones" data-currency="USD" data-exchange="DJ">Dow Jones (^DJI)</option>
+                            <option value="TVC:RUT" data-name="Russell 2000" data-currency="USD" data-exchange="TVC">Russell 2000 (^RUT)</option>
+                        </optgroup>
+                        <optgroup label="European Markets">
+                            <option value="TVC:UKX" data-name="FTSE 100" data-currency="GBP" data-exchange="TVC">FTSE 100 (UKX)</option>
+                            <option value="TVC:DAX" data-name="DAX" data-currency="EUR" data-exchange="TVC">DAX (DAX)</option>
+                            <option value="TVC:CAC" data-name="CAC 40" data-currency="EUR" data-exchange="TVC">CAC 40 (CAC)</option>
+                            <option value="TVC:AEX" data-name="AEX" data-currency="EUR" data-exchange="TVC">AEX (AEX)</option>
+                        </optgroup>
+                        <optgroup label="Asian Markets">
+                            <option value="TVC:NI225" data-name="Nikkei 225" data-currency="JPY" data-exchange="TVC">Nikkei 225 (N225)</option>
+                            <option value="TVC:HSI" data-name="Hang Seng" data-currency="HKD" data-exchange="TVC">Hang Seng (HSI)</option>
+                            <option value="TVC:SHCOMP" data-name="Shanghai Composite" data-currency="CNY" data-exchange="TVC">Shanghai Composite (SHCOMP)</option>
+                            <option value="TVC:KOSPI" data-name="KOSPI" data-currency="KRW" data-exchange="TVC">KOSPI (KOSPI)</option>
+                            <option value="TVC:XJO" data-name="ASX 200" data-currency="AUD" data-exchange="TVC">ASX 200 (XJO)</option>
+                        </optgroup>
+                        <optgroup label="Individual Stocks">
+                            <option value="NASDAQ:AAPL" data-name="Apple Inc." data-currency="USD" data-exchange="NASDAQ">Apple (AAPL)</option>
+                            <option value="NASDAQ:MSFT" data-name="Microsoft Corp." data-currency="USD" data-exchange="NASDAQ">Microsoft (MSFT)</option>
+                            <option value="NASDAQ:GOOGL" data-name="Alphabet Inc." data-currency="USD" data-exchange="NASDAQ">Google (GOOGL)</option>
+                            <option value="NASDAQ:AMZN" data-name="Amazon.com Inc." data-currency="USD" data-exchange="NASDAQ">Amazon (AMZN)</option>
+                            <option value="NASDAQ:TSLA" data-name="Tesla Inc." data-currency="USD" data-exchange="NASDAQ">Tesla (TSLA)</option>
+                            <option value="NASDAQ:NVDA" data-name="NVIDIA Corp." data-currency="USD" data-exchange="NASDAQ">NVIDIA (NVDA)</option>
+                        </optgroup>
+                        <optgroup label="Commodities">
+                            <option value="TVC:GOLD" data-name="Gold" data-currency="USD" data-exchange="TVC">Gold (GOLD)</option>
+                            <option value="TVC:SILVER" data-name="Silver" data-currency="USD" data-exchange="TVC">Silver (SILVER)</option>
+                            <option value="NYMEX:CL1!" data-name="Crude Oil" data-currency="USD" data-exchange="NYMEX">Crude Oil (CL)</option>
+                            <option value="NYMEX:NG1!" data-name="Natural Gas" data-currency="USD" data-exchange="NYMEX">Natural Gas (NG)</option>
+                        </optgroup>
+                        <optgroup label="Cryptocurrencies">
+                            <option value="BINANCE:BTCUSDT" data-name="Bitcoin" data-currency="USD" data-exchange="BINANCE">Bitcoin (BTC-USD)</option>
+                            <option value="BINANCE:ETHUSDT" data-name="Ethereum" data-currency="USD" data-exchange="BINANCE">Ethereum (ETH-USD)</option>
+                            <option value="BINANCE:BNBUSDT" data-name="Binance Coin" data-currency="USD" data-exchange="BINANCE">Binance Coin (BNB-USD)</option>
+                            <option value="BINANCE:ADAUSDT" data-name="Cardano" data-currency="USD" data-exchange="BINANCE">Cardano (ADA-USD)</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- TradingView Price Widget Container -->
+        <div id="tradingview-price-widget" style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="tradingview-widget-container">
+                <div id="tradingview-widget-symbol" class="tradingview-widget-container__widget"></div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Market Overview Card -->
+            <div class="card market-overview">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-area"></i> Market Overview</h2>
+                    <div class="data-status">
+                        <span class="last-updated">Last updated: <span id="lastUpdated">Loading...</span></span>
+                        <span class="data-source" id="dataSource">
+                            <i class="fas fa-circle" id="dataSourceIcon"></i>
+                            <span id="dataSourceText">Connecting...</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="market-stats">
+                    <div class="stat">
+                        <label><span id="symbolLabel">NASDAQ</span> Index</label>
+                        <span class="value" id="nasdaqIndex">Loading...</span>
+                        <span class="change" id="nasdaqChange">--</span>
+                    </div>
+                    <div class="stat">
+                        <label>Volume</label>
+                        <span class="value" id="volume">Loading...</span>
+                    </div>
+                    <div class="stat">
+                        <label>Market Cap</label>
+                        <span class="value" id="marketCap">Loading...</span>
+                    </div>
+                    <div class="stat">
+                        <label>Currency</label>
+                        <span class="value" id="currency">USD</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentiment Analysis Card -->
+            <div class="card sentiment-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-brain"></i> Market Sentiment</h2>
+                </div>
+                <div class="sentiment-content">
+                    <div class="sentiment-indicator">
+                        <div class="sentiment-circle" id="sentimentCircle">
+                            <span class="sentiment-text" id="sentimentText">ANALYZING</span>
+                        </div>
+                    </div>
+                    <div class="recommendation" id="recommendation">
+                        <h3>Recommendation: <span id="recommendationText">Loading...</span></h3>
+                        <p id="recommendationReason">Analyzing market conditions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Indicators Card -->
+            <div class="card indicators-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Technical Indicators</h2>
+                </div>
+                <div class="indicators">
+                    <div class="indicator">
+                        <span class="indicator-name">RSI (14)</span>
+                        <div class="indicator-bar">
+                            <div class="indicator-fill" id="rsiBar"></div>
+                        </div>
+                        <span class="indicator-value" id="rsiValue">--</span>
+                    </div>
+                    <div class="indicator">
+                        <span class="indicator-name">MACD</span>
+                        <div class="indicator-status" id="macdStatus">--</div>
+                    </div>
+                    <div class="indicator">
+                        <span class="indicator-name">Moving Avg (50)</span>
+                        <div class="indicator-status" id="maStatus">--</div>
+                    </div>
+                    <div class="indicator">
+                        <span class="indicator-name">Bollinger Bands</span>
+                        <div class="indicator-status" id="bbStatus">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fear & Greed Index Card -->
+            <div class="card fear-greed-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-thermometer-half"></i> Fear & Greed Index</h2>
+                </div>
+                <div class="fear-greed-content">
+                    <div class="gauge-container">
+                        <div class="gauge" id="fearGreedGauge">
+                            <div class="gauge-needle" id="gaugeNeedle"></div>
+                        </div>
+                        <div class="gauge-labels">
+                            <span>Fear</span>
+                            <span>Neutral</span>
+                            <span>Greed</span>
+                        </div>
+                    </div>
+                    <div class="fear-greed-value">
+                        <span class="value" id="fearGreedValue">--</span>
+                        <span class="label" id="fearGreedLabel">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+            <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
+                <i class="fas fa-clock" id="autoRefreshIcon"></i> <span id="autoRefreshText">Enable Auto-Refresh</span>
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p><i class="fas fa-info-circle"></i> Market data provided by TradingView. Real-time prices and analysis.</p>
+        </footer>
+
+        <!-- Hidden TradingView Widget for Data Fetching -->
+        <div id="tradingview_widget" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // TradingView Widget Management
+        let currentWidget = null;
+
+        function createTradingViewWidget(symbol) {
+            const widgetContainer = document.getElementById('tradingview-widget-symbol');
+            
+            // Clear existing widget
+            if (currentWidget) {
+                widgetContainer.innerHTML = '';
+            }
+            
+            // Create new widget script
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "symbol": symbol,
+                "width": "350",
+                "height": "130",
+                "locale": "en",
+                "dateRange": "12M",
+                "colorTheme": "light",
+                "trendLineColor": "rgba(41, 98, 255, 1)",
+                "underLineColor": "rgba(41, 98, 255, 0.3)",
+                "underLineBottomColor": "rgba(41, 98, 255, 0)",
+                "isTransparent": false,
+                "autosize": false,
+                "largeChartUrl": ""
+            });
+            
+            widgetContainer.appendChild(script);
+            currentWidget = script;
+        }
+
+        function changeSymbol() {
+            const select = document.getElementById('symbolSelect');
+            const symbol = select.value;
+            const name = select.options[select.selectedIndex].getAttribute('data-name');
+            const currency = select.options[select.selectedIndex].getAttribute('data-currency');
+            const exchange = select.options[select.selectedIndex].getAttribute('data-exchange');
+            
+            // Update dashboard labels
+            document.getElementById('marketTitle').innerText = name;
+            document.getElementById('symbolLabel').innerText = name.split(' ')[0]; // First word for label
+            document.getElementById('currency').innerText = currency;
+            
+            // Update TradingView widget
+            createTradingViewWidget(symbol);
+            
+            // Update market data (from script.js)
+            if (typeof updateMarketData === 'function') {
+                updateMarketData(symbol, name, currency);
+            }
+        }
+
+        // Initialize with default symbol
+        document.addEventListener('DOMContentLoaded', function() {
+            createTradingViewWidget('NASDAQ:IXIC');
+            
+            // Initialize market data if function exists
+            if (typeof initializeMarketData === 'function') {
+                initializeMarketData();
+            }
+        });
+    </script>
+</body>
+</html>
